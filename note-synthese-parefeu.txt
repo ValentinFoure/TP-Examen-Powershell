@@ -1,0 +1,101 @@
+Politique de sécurité réseau et conformité du poste
+===================================================
+
+1. Politique de pare-feu locale stricte
+---------------------------------------
+
+Principe :
+- Tout bloquer par défaut (entrant et sortant)
+- N’autoriser que les services strictement nécessaires
+
+Blocage par défaut :
+Set-NetFirewallProfile -Profile Domain,Private,Public -DefaultInboundAction Block -DefaultOutboundAction Block
+
+Explication :
+Cette commande configure le pare-feu Windows pour bloquer tout le trafic réseau, sauf exceptions explicitement autorisées.
+
+Services autorisés :
+
+# Autoriser le trafic DNS sortant (résolution de noms)
+New-NetFirewallRule -DisplayName "Autoriser DNS sortant" -Direction Outbound -Protocol UDP -RemotePort 53 -Action Allow
+
+# Autoriser le trafic HTTP sortant (navigation web)
+New-NetFirewallRule -DisplayName "Autoriser HTTP sortant" -Direction Outbound -Protocol TCP -RemotePort 80 -Action Allow
+
+# Autoriser le trafic HTTPS sortant (navigation sécurisée)
+New-NetFirewallRule -DisplayName "Autoriser HTTPS sortant" -Direction Outbound -Protocol TCP -RemotePort 443 -Action Allow
+
+# Autoriser le Bureau à distance entrant (RDP)
+New-NetFirewallRule -DisplayName "Autoriser RDP entrant" -Direction Inbound -Protocol TCP -LocalPort 3389 -Action Allow
+
+Explications :
+- DNS sortant : Permet à la machine de résoudre les noms de domaine (indispensable pour accéder à Internet).
+- HTTP/HTTPS sortant : Permet la navigation web et l’accès aux ressources en ligne.
+- RDP entrant : À n’activer que si l’administration à distance est nécessaire.
+
+Tout autre service est bloqué par défaut, ce qui réduit la surface d’attaque.
+
+2. Vérification et documentation de la conformité du poste
+----------------------------------------------------------
+
+Vérifier l’état du pare-feu :
+Get-NetFirewallProfile | Format-Table Name, Enabled, DefaultInboundAction, DefaultOutboundAction
+
+Vérifier la présence d’un antivirus (Defender) :
+Get-MpComputerStatus | Select-Object AMServiceEnabled, AntispywareEnabled, RealTimeProtectionEnabled
+
+Vérifier les mises à jour Windows :
+Get-HotFix | Sort-Object InstalledOn -Descending | Select-Object -First 5
+
+Vérifier le chiffrement BitLocker :
+Get-BitLockerVolume | Select-Object MountPoint, ProtectionStatus
+
+Vérifier la journalisation locale :
+wevtutil el
+
+3. Gestion locale des utilisateurs, groupes et rapports
+-------------------------------------------------------
+
+La gestion locale des utilisateurs et des groupes est assurée par un script dédié permettant :
+- L’ajout d’utilisateurs avec nom, prénom, email, licence (E1/E3/E5)
+- La création de groupes locaux
+- L’attribution d’utilisateurs à des groupes
+- L’export d’un rapport synthétique (CSV)
+
+Intégration à l’audit de sécurité :
+- Nombre total d’utilisateurs créés
+- Nombre total de groupes créés
+- Répartition des licences utilisées (E1/E3/E5)
+
+Ces informations sont issues de l’analyse des fichiers `users.json` et `groups.json` générés par le script de gestion locale. Elles permettent d’avoir une vision claire de la structure des comptes et des droits sur le poste audité.
+
+4. Note de synthèse
+-------------------
+
+Politique de sécurité réseau appliquée :
+La politique de pare-feu locale mise en place repose sur le principe du moindre privilège :
+- Tout le trafic entrant et sortant est bloqué par défaut.
+- Seuls les flux strictement nécessaires sont explicitement autorisés :
+  - DNS sortant (UDP 53)
+  - HTTP/HTTPS sortant (TCP 80/443)
+  - (Optionnel) RDP entrant (TCP 3389) pour l’administration distante
+
+Cette approche limite fortement la surface d’attaque du poste et réduit les risques d’intrusion ou de fuite de données.
+
+Conformité du poste :
+Les vérifications suivantes ont été réalisées :
+- Pare-feu Windows activé sur tous les profils, avec une politique restrictive.
+- Antivirus Windows Defender actif (protection en temps réel et antispyware).
+- Mises à jour Windows appliquées (vérification des derniers correctifs installés).
+- Chiffrement BitLocker vérifié (protection des volumes système et données).
+- Journalisation locale activée (présence des journaux d’événements).
+
+Gestion des utilisateurs et groupes :
+- Nombre d’utilisateurs, de groupes et répartition des licences intégrés à l’audit.
+
+Conclusion :
+La configuration appliquée garantit un niveau de sécurité élevé pour le poste de travail :
+- Seuls les services essentiels sont accessibles.
+- Le poste est protégé contre la plupart des menaces réseau.
+- Les outils de sécurité et de conformité sont actifs et vérifiés.
+- La gestion des comptes et des droits est maîtrisée.
