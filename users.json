@@ -1,0 +1,9 @@
+[
+    {
+      "nom": "Durand",
+      "prenom": "Paul",
+      "email": "paul.durand@email.com",
+      "licence": "E3",
+      "groupes": ["RH"]
+    }
+]
